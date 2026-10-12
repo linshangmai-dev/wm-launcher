@@ -13,18 +13,27 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Binder
+import android.os.IBinder
+import android.os.Parcel
 import android.view.KeyEvent
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /** Disposable API 23 emulator regression: CarPlay transport controls vs a second player. */
 class WmMediaRuntime : Instrumentation() {
+    private var resumedHome: HomeActivity? = null
+    override fun callActivityOnResume(activity: android.app.Activity) {
+        super.callActivityOnResume(activity)
+        if (activity is HomeActivity) resumedHome = activity
+    }
     override fun onCreate(arguments: Bundle?) { super.onCreate(arguments); start() }
     override fun onStart() {
         val output = Bundle()
         val sessions = mutableListOf<MediaSession>()
         var monitor: MediaMonitor? = null
         var home: HomeActivity? = null
+        var factoryKeys: WmMediaKeysMonitor? = null
         try {
             require(Build.VERSION.SDK_INT == 23 && Build.FINGERPRINT.contains("generic"))
             require(targetContext.packageName == "com.wmhome.launcher")
@@ -109,17 +118,23 @@ class WmMediaRuntime : Instrumentation() {
                 ComponentName(targetContext.packageName, HomeActivity::class.java.name))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) as HomeActivity
             waitForIdleSync()
+            home = resumedHome ?: home
             val page = home!!
             runOnMainSync {
                 val mediaField = HomeActivity::class.java.getDeclaredField("mediaMonitor").apply { isAccessible = true }
-                (mediaField.get(page) as? MediaMonitor)?.stop()
-                mediaField.set(page, monitor)
-                HomeActivity::class.java.getDeclaredMethod("renderMedia", MediaInfo::class.java)
-                    .apply { isAccessible = true }.invoke(page, MediaInfo("CarPlay remote track", "Remote music", null, true, targetContext.packageName))
-                page.window.decorView.clearFocus()
+                monitor!!.stop()
+                monitor = mediaField.get(page) as MediaMonitor
+                // Exercise Home's live notification-authorized monitor rather than
+                // replacing it while Android may still be delivering lifecycle callbacks.
+                val actual = MediaMonitor::class.java.getDeclaredField("controller")
+                    .apply { isAccessible = true }.get(monitor) as? MediaController
+                check(actual?.sessionToken == target.sessionToken) { "Home did not bind the playing test session" }
+                check(page.findViewById<android.view.View>(R.id.mediaTitle).requestFocus())
             }
+            setInTouchMode(true)
             waitForIdleSync()
             check(page.hasWindowFocus())
+            check(page.findViewById<android.view.View>(R.id.mediaTitle).hasFocus())
             fun keyboard(code: Int, label: String) {
                 complete = CountDownLatch(1)
                 val before = calls.size
@@ -128,7 +143,9 @@ class WmMediaRuntime : Instrumentation() {
                     val focus = page.currentFocus
                     "Keyboard $label timed out: focus=${focus?.javaClass?.simpleName}/" +
                         (focus?.let { page.resources.getResourceEntryName(it.id) } ?: "none") +
-                        ", musicShown=${page.findViewById<android.view.View>(R.id.mediaHeader).isShown}, window=${page.hasWindowFocus()}"
+                        ", musicShown=${page.findViewById<android.view.View>(R.id.mediaHeader).isShown}, window=${page.hasWindowFocus()}, " +
+                        "source=" + HomeActivity::class.java.getDeclaredField("currentMedia").apply { isAccessible = true }.get(page) +
+                        ", destroyed=${page.isDestroyed}, latestHome=${resumedHome === page}"
                 }
                 waitForIdleSync()
                 check(calls.size == before + 1 && calls.last() == label)
@@ -150,13 +167,87 @@ class WmMediaRuntime : Instrumentation() {
             check(complete.await(3, TimeUnit.SECONDS))
             waitForIdleSync()
             check(calls.size == before + 1 && calls.last() == "next" && otherCalls == 0)
-            output.putString("stream", "WM_MEDIA_OK API23: transport controls, physical left/right keys and card buttons reach current remote session only; held key skips once; other player=0")
+            val input = FactoryInput()
+            factoryKeys = WmMediaKeysMonitor(findService = { input }) { event ->
+                HomeActivity::class.java.getDeclaredMethod("onFactoryMediaKey", KeyEvent::class.java)
+                    .apply { isAccessible = true }.invoke(page, event)
+            }
+            runOnMainSync { factoryKeys!!.start() }
+            check(input.connected.await(3, TimeUnit.SECONDS)) { "Factory subscriptions timed out" }
+            check(input.keys() == setOf(87, 88)) { "Subscribed to unrelated factory keys" }
+            fun factory(code: Int, label: String) {
+                complete = CountDownLatch(1)
+                val count = calls.size
+                input.send(code, KeyEvent.ACTION_UP)
+                check(complete.await(3, TimeUnit.SECONDS)) { "Factory release-only $label timed out" }
+                waitForIdleSync()
+                check(calls.size == count + 1 && calls.last() == label && otherCalls == 0)
+            }
+            repeat(3) { factory(88, "previous") }
+            repeat(3) { factory(87, "next") }
+            val count = calls.size
+            input.send(87, KeyEvent.ACTION_DOWN)
+            waitForIdleSync()
+            check(calls.size == count)
+            runOnMainSync {
+                HomeActivity::class.java.getDeclaredMethod("renderMedia", MediaInfo::class.java)
+                    .apply { isAccessible = true }.invoke(page, MediaInfo("Factory player", "", null, true, "com.ivi.musicplayer"))
+            }
+            input.send(87, KeyEvent.ACTION_UP)
+            waitForIdleSync()
+            check(calls.size == count) { "Factory player received a duplicate skip" }
+            runOnMainSync {
+                HomeActivity::class.java.getDeclaredMethod("renderMedia", MediaInfo::class.java)
+                    .apply { isAccessible = true }.invoke(page, MediaInfo("Remote track", "", null, true, targetContext.packageName))
+            }
+            val oldCallback = input.callback(87)
+            runOnMainSync { factoryKeys!!.stop() }
+            check(input.disconnected.await(3, TimeUnit.SECONDS)) { "Factory listeners not removed" }
+            check(input.keys().isEmpty())
+            input.deliver(oldCallback, 87, KeyEvent.ACTION_UP)
+            waitForIdleSync()
+            check(calls.size == count) { "Stopped factory listener forwarded a late callback" }
+            output.putString("stream", "WM_MEDIA_OK API23: transport controls, physical left/right keys and card buttons reach current remote session only; first arrow after touch mode works; held key skips once; factory Binder release-only 88/87 reaches same source, rapid presses retained, subscriptions removed on stop; factory player not doubled; other player=0")
             finish(-1, output)
         } catch (failure: Throwable) {
             output.putString("stream", "WM_MEDIA_FAILED ${failure.stackTraceToString()}")
             finish(0, output)
         } finally {
-            runOnMainSync { home?.finish(); monitor?.stop(); sessions.forEach { it.release() } }
+            runOnMainSync { factoryKeys?.stop(); home?.finish(); monitor?.stop(); sessions.forEach { it.release() } }
+        }
+    }
+
+    /** The independently checked OEM contract; it dispatches releases, not keyboard DOWNs. */
+    private class FactoryInput : Binder() {
+        private val listeners = mutableMapOf<Int, IBinder>()
+        val connected = CountDownLatch(2)
+        val disconnected = CountDownLatch(2)
+        init { attachInterface(null, "com.yftech.inputmanager.IInputManager") }
+        override fun onTransact(code: Int, data: Parcel, reply: Parcel?, flags: Int): Boolean {
+            if (code == INTERFACE_TRANSACTION) { reply?.writeString("com.yftech.inputmanager.IInputManager"); return true }
+            check(code == 1 || code == 2) { "Unexpected factory operation $code" }
+            data.enforceInterface("com.yftech.inputmanager.IInputManager")
+            val callback = data.readStrongBinder()
+            val key = data.readInt()
+            check(key == 87 || key == 88)
+            synchronized(listeners) {
+                if (code == 1) { listeners[key] = callback; connected.countDown() }
+                else { check(listeners.remove(key) === callback); disconnected.countDown() }
+            }
+            reply!!.writeNoException(); reply.writeInt(1)
+            return true
+        }
+        fun keys(): Set<Int> = synchronized(listeners) { listeners.keys.toSet() }
+        fun callback(key: Int): IBinder = synchronized(listeners) { listeners.getValue(key) }
+        fun send(key: Int, action: Int) = deliver(callback(key), key, action)
+        fun deliver(callback: IBinder, key: Int, action: Int) {
+            val data = Parcel.obtain()
+            try {
+                data.writeInterfaceToken("com.yftech.inputmanager.IInputListener")
+                data.writeInt(1)
+                KeyEvent(action, key).writeToParcel(data, 0)
+                check(callback.transact(1, data, null, IBinder.FLAG_ONEWAY))
+            } finally { data.recycle() }
         }
     }
 }

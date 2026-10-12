@@ -39,6 +39,7 @@ class HomeActivity : BaseActivity() {
     private var mediaMonitor: MediaMonitor? = null
     private var currentMedia: MediaInfo? = null
     private val mediaArrowKeys = MediaArrowKeys()
+    private val factoryMediaKeys = WmMediaKeysMonitor(onKey = ::onFactoryMediaKey)
     private var draggingMedia = false
     private var needsMediaAccess = false
 
@@ -909,6 +910,14 @@ class HomeActivity : BaseActivity() {
         }
     }
 
+    private fun onFactoryMediaKey(event: KeyEvent) {
+        if (!hasWindowFocus() || !::binding.isInitialized || !::prefs.isInitialized ||
+            !prefs.setupDone || !binding.mediaHeader.isShown) return
+        val arrow = WmMediaKeyPolicy.arrow(event, currentMedia?.packageName) ?: return
+        android.util.Log.i("WM-MediaKeys", "Factory key=${event.keyCode} -> current source=${currentMedia?.packageName}")
+        skipMediaTrack(arrow)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         val focus = currentFocus
         val enabled = hasWindowFocus() && ::binding.isInitialized && ::prefs.isInitialized && prefs.setupDone &&
@@ -923,6 +932,9 @@ class HomeActivity : BaseActivity() {
         for (view in listOf(binding.mediaHeader, binding.btnPrev, binding.btnPlayPause, binding.btnNext)) {
             view.isFocusable = true
         }
+        // Android 6 otherwise consumes the first arrow to leave touch mode.
+        // Use the non-clickable title so the header still opens with one tap.
+        binding.mediaTitle.isFocusableInTouchMode = true
         binding.btnPlayPause.setOnClickListener { controlMedia { mediaMonitor?.playPause() } }
         binding.btnNext.setOnClickListener { skipMediaTrack(KeyEvent.KEYCODE_DPAD_RIGHT) }
         binding.btnPrev.setOnClickListener { skipMediaTrack(KeyEvent.KEYCODE_DPAD_LEFT) }
@@ -1219,6 +1231,7 @@ class HomeActivity : BaseActivity() {
         applyKeepScreenOn()
         handler.post(ticker)
         mediaMonitor?.start()
+        factoryMediaKeys.start()
         // Widgets only receive updates while the host is listening, and there's
         // no point listening for a dashboard that shows none.
         if (prefs.anyCardUsesWidgets()) {
@@ -1271,6 +1284,7 @@ class HomeActivity : BaseActivity() {
     override fun onPause() {
         super.onPause()
         mediaArrowKeys.reset()
+        factoryMediaKeys.stop()
         tirePressureMonitor?.stop()
         lteMonitor?.stop()
         detailsDialog?.dismiss()

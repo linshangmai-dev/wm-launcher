@@ -1,0 +1,38 @@
+{
+  "version": "0.1.0-wm21",
+  "versionCode": 1021,
+  "date": "2026-10-13",
+  "jvm": {
+    "legacy": {
+      "tests": 68,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 193
+      }
+    },
+    "xxqg": {
+      "tests": 68,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 193
+      }
+    }
+  },
+  "runtime": {
+    "api": 23,
+    "media": "WM_MEDIA_OK API23: transport controls, physical left/right keys and card buttons reach current remote session only; first arrow after touch mode works; held key skips once; factory Binder release-only 88/87 reaches same source, rapid presses retained, subscriptions removed on stop; factory player not doubled; other player=0",
+    "production_apk_contains_debug_fixture": false
+  },
+  "observed_factory_keys": {
+    "left": 88,
+    "right": 87,
+    "callback_action": "ACTION_UP",
+    "presses_per_key": 3
+  },
+  "checked_application_files": 217,
+  "apk_sha256": "525dcb9e97f14f3cd9206f61c1ec287bd57bcd18489fd1f15e143581fbcb1884"
+}
