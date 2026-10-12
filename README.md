@@ -4,11 +4,11 @@
 
 把应用、音乐和车辆信息放到一个清晰的首页，大图标、大字体，支持横屏和竖屏。基于开源 Dashline 适配，不是威马官方软件。
 
-[下载最新版](https://github.com/naojiren/wm-launcher/releases/latest) · [wm19 发布说明](https://github.com/naojiren/wm-launcher/releases/tag/v0.1.0-wm19)
+[下载最新版](https://github.com/naojiren/wm-launcher/releases/latest) · [wm20 发布说明](https://github.com/naojiren/wm-launcher/releases/tag/v0.1.0-wm20)
 
 ## 小体积，保留常用功能
 
-wm19 独立版 APK 为 **1,313,865 字节，约 1.25 MiB / 1.31 MB**。体积来自实际发布文件，源码包大小不计入 APK。
+wm20 独立版 APK 为 **1,314,512 字节，约 1.25 MiB / 1.31 MB**。体积来自实际发布文件，源码包大小不计入 APK。
 
 - **原生界面**：Kotlin + Android Views，使用系统字体和矢量图标。
 - **功能精简**：去掉在线天气；音乐、导航等直接调用车机已有应用，不把播放器、地图或浏览器打包进桌面。
@@ -21,15 +21,16 @@ wm19 独立版 APK 为 **1,313,865 字节，约 1.25 MiB / 1.31 MB**。体积来
 - 完整应用抽屉按“第三方 / 原厂应用 / 全部”分类；长按可隐藏、打开系统应用详情或发起卸载。
 - 保留 3 个自定义快捷入口，以及车辆控制、原厂功能、音乐、广播、电话、导航入口。
 - 首页音乐卡片显示曲目和播放状态，提供播放/暂停、上一首、下一首、音量和进度操作。优先使用当前来源支持的直接控制，兼容 CarPlay；已识别的来源拒绝操作时不会转交其他播放器。
+- 键盘左键对应上一首，右键对应下一首，桌面切歌按钮共用当前播放来源的控制通道。长按只切换一次；音量/进度滑块、输入文字和组合快捷键保留原用途。
 - 深海冰蓝主题、大字和较大的点击区域，适配竖屏与横屏。
 - 在兼容的威马固件和权限下，可显示电量、系统预估里程、按 280 × 电量百分比计算的实际预估里程、四轮胎压、TRIP A/B、总里程，以及电池和 LTE 详情。
 - 启动或返回桌面时自动检查并补齐“威课堂”入口和系统默认 HOME；设置顶部两项永久开启，点按只重新修复。已正确时不改写，操作结束释放本机调试通道。
 
 ## 界面预览
 
-下图为安卓 6 模拟器的示例数据，仅展示布局。
+下图为 wm19 安卓 6 模拟器的示例数据，wm20 保留此布局。
 
-<img src="docs/screenshots/home-wm19.png" alt="威马桌面 wm19 首页：三列三排应用" width="360">
+<img src="docs/screenshots/home-wm19.png" alt="威马桌面首页：三列三排应用" width="360">
 
 ## 安装与兼容
 
@@ -61,7 +62,9 @@ Windows 使用 `gradlew.bat`。调试 APK 位于 `app/build/outputs/apk/legacy/d
 
 正式签名可参照 `keystore.properties.example`，或提供 `KEYSTORE_FILE`、`KEYSTORE_PASSWORD`、`KEY_ALIAS`、`KEY_PASSWORD` 环境变量。发布用私钥不包含在仓库中。
 
-wm19 两种发行分支共 **118 项 API 23 单元/布局检查通过**，正式 APK 的 v1/v2 签名有效。1080×1920 原生模拟器已检查未播放和显示音乐进度栏两种状态，三排图标和文字均完整显示。双播放器检查确认 CarPlay 形式会话收到全部四种控制，另一个播放器收到零次操作。正式包在自编原厂入口替身上检查了自动修复、常开开关与 Home 键跳转；这些模拟器结果不代表实车播放核验。记录见 [wm19-checks.json](docs/wm19-checks.json)。额外的截图测试入口仅在 debug 中存在，需要开发者自行提供本地测试图标，不进入 Release APK。
+wm20 两种分支共 **126 项 API 23 单元/布局检查通过**，正式 APK 的 v1/v2 签名有效。安卓 6 模拟器实际按键盘左/右键、点按桌面两侧按钮，确认均到达当前远程形式媒体会话，另一个播放器收到零次操作，长按只切换一次。测试会话为自编替身，未执行真实 CarPlay/iPhone 播放核验。检查记录见 [wm20-checks.json](docs/wm20-checks.json)。
+
+自动入口、默认 HOME、常开开关和三排布局的既有检查见 [wm19-checks.json](docs/wm19-checks.json)。测试入口仅在 debug 中存在，不进入 Release APK。
 
 ## 开源与致谢
 

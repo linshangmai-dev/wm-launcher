@@ -1,0 +1,32 @@
+{
+  "version": "0.1.0-wm20",
+  "versionCode": 1020,
+  "date": "2026-10-13",
+  "jvm": {
+    "legacy": {
+      "tests": 63,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 191
+      }
+    },
+    "xxqg": {
+      "tests": 63,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 191
+      }
+    }
+  },
+  "runtime": {
+    "api": 23,
+    "media": "WM_MEDIA_OK API23: transport controls, physical left/right keys and card buttons reach current remote session only; held key skips once; other player=0",
+    "production_apk_contains_debug_fixture": false
+  },
+  "checked_application_files": 215,
+  "apk_sha256": "394393f4df9f29c37433bf40e85bc9d540c7d35ab21ce0cf336bdf133572baa2"
+}

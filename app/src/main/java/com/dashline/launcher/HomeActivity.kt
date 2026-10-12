@@ -14,6 +14,7 @@ import android.os.SystemClock
 import android.graphics.Typeface
 import android.widget.SeekBar
 import android.widget.Toast
+import android.view.KeyEvent
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
@@ -37,6 +38,7 @@ class HomeActivity : BaseActivity() {
 
     private var mediaMonitor: MediaMonitor? = null
     private var currentMedia: MediaInfo? = null
+    private val mediaArrowKeys = MediaArrowKeys()
     private var draggingMedia = false
     private var needsMediaAccess = false
 
@@ -894,14 +896,36 @@ class HomeActivity : BaseActivity() {
 
     // ---- Media widget ------------------------------------------------------
 
-    private fun setupMedia() {
-        fun control(action: () -> Boolean?) {
-            if (action() != true) Toast.makeText(this, R.string.wm_media_control_failed, Toast.LENGTH_LONG).show()
-            binding.root.postDelayed({ updateMediaProgress() }, 250)
+    private fun controlMedia(action: () -> Boolean?) {
+        if (action() != true) Toast.makeText(this, R.string.wm_media_control_failed, Toast.LENGTH_LONG).show()
+        binding.root.postDelayed({ updateMediaProgress() }, 250)
+    }
+
+    private fun skipMediaTrack(arrow: Int) = controlMedia {
+        when (arrow) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> mediaMonitor?.previous()
+            KeyEvent.KEYCODE_DPAD_RIGHT -> mediaMonitor?.next()
+            else -> false
         }
-        binding.btnPlayPause.setOnClickListener { control { mediaMonitor?.playPause() } }
-        binding.btnNext.setOnClickListener { control { mediaMonitor?.next() } }
-        binding.btnPrev.setOnClickListener { control { mediaMonitor?.previous() } }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val focus = currentFocus
+        val enabled = hasWindowFocus() && ::binding.isInitialized && ::prefs.isInitialized && prefs.setupDone &&
+            binding.mediaHeader.isShown && focus !is SeekBar && focus !is android.widget.EditText &&
+            (currentMedia != null || (::audioManager.isInitialized && audioManager.isMusicActive))
+        if (mediaArrowKeys.dispatch(event, enabled, ::skipMediaTrack)) return true
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun setupMedia() {
+        // Give hardware keyboards a music focus target before the default slider.
+        for (view in listOf(binding.mediaHeader, binding.btnPrev, binding.btnPlayPause, binding.btnNext)) {
+            view.isFocusable = true
+        }
+        binding.btnPlayPause.setOnClickListener { controlMedia { mediaMonitor?.playPause() } }
+        binding.btnNext.setOnClickListener { skipMediaTrack(KeyEvent.KEYCODE_DPAD_RIGHT) }
+        binding.btnPrev.setOnClickListener { skipMediaTrack(KeyEvent.KEYCODE_DPAD_LEFT) }
         binding.mediaHeader.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> layoutMediaControls() }
 
         binding.mediaProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -1246,6 +1270,7 @@ class HomeActivity : BaseActivity() {
 
     override fun onPause() {
         super.onPause()
+        mediaArrowKeys.reset()
         tirePressureMonitor?.stop()
         lteMonitor?.stop()
         detailsDialog?.dismiss()
