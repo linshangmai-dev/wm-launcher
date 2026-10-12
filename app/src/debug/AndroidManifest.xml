@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation android:name="com.dashline.launcher.WmRuntimeInstrumentation"
+        android:targetPackage="${applicationId}" android:label="WM API 23 validation" />
+    <instrumentation android:name="com.dashline.launcher.WmHomeIntegrationRuntime"
+        android:targetPackage="${applicationId}" android:label="WM home settings API 23 validation" />
+    <instrumentation android:name="com.dashline.launcher.WmVisualRuntime"
+        android:targetPackage="${applicationId}" android:label="WM emulator visual fixture" />
+</manifest>

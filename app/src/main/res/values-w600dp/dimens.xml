@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- A split dashboard on a compact landscape screen needs the clock width. -->
+    <dimen name="clock_right_inset">0px</dimen>
+</resources>

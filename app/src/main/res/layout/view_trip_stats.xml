@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:gravity="center"
+    android:paddingStart="4dp" android:paddingEnd="4dp">
+    <TextView style="@style/TripStatLabel" android:text="@string/wm_vehicle_trip_a" />
+    <com.dashline.launcher.VehicleStatView android:id="@+id/tripAValue"
+        style="@style/TripStatValue" android:tag="trip" android:text="-- km" />
+    <TextView style="@style/TripStatLabel" android:text="@string/wm_vehicle_trip_b" />
+    <com.dashline.launcher.VehicleStatView android:id="@+id/tripBValue"
+        style="@style/TripStatValue" android:tag="trip" android:text="-- km" />
+    <TextView style="@style/TripStatLabel" android:text="@string/wm_vehicle_total" />
+    <com.dashline.launcher.VehicleStatView android:id="@+id/totalValue"
+        style="@style/TripStatValue" android:tag="trip" android:text="-- km" />
+</LinearLayout>

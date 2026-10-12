@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
+    <include android:id="@+id/header" layout="@layout/view_page_header" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="16dp" android:text="@string/wm_factory_hint"
+        android:textColor="@color/text_secondary" android:textSize="17sp" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/factoryGrid"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:padding="12dp" android:clipToPadding="false" android:scrollbars="vertical" />
+</LinearLayout>

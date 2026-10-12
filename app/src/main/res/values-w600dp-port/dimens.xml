@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Large, low-density portrait head units like the photographed CQ1301. -->
+<resources>
+    <dimen name="vehicle_bar_height">92dp</dimen>
+    <dimen name="vehicle_stat_label">20sp</dimen>
+    <dimen name="vehicle_stat_value">32sp</dimen>
+    <dimen name="trip_stat_label">20sp</dimen>
+    <dimen name="trip_stat_value">28sp</dimen>
+    <dimen name="clock_right_inset">50px</dimen>
+    <dimen name="app_icon_size">128dp</dimen>
+    <dimen name="app_label_size">29sp</dimen>
+    <dimen name="app_status_size">23sp</dimen>
+    <dimen name="app_tile_height">210dp</dimen>
+    <dimen name="app_tile_padding">4dp</dimen>
+    <dimen name="apps_heading_size">29sp</dimen>
+    <dimen name="tab_icon_size">48dp</dimen>
+    <dimen name="tab_label_size">27sp</dimen>
+    <dimen name="tab_bar_height">120dp</dimen>
+    <dimen name="app_label_gap">4dp</dimen>
+    <dimen name="app_filter_height">88dp</dimen>
+    <dimen name="app_filter_text">28sp</dimen>
+    <dimen name="shortcut_height">104dp</dimen>
+    <dimen name="shortcut_icon">56dp</dimen>
+    <dimen name="shortcut_text">28sp</dimen>
+    <dimen name="pressure_title">24sp</dimen>
+    <dimen name="pressure_label">22sp</dimen>
+    <dimen name="pressure_value">34sp</dimen>
+    <dimen name="pressure_status">18sp</dimen>
+    <dimen name="vehicle_battery_width">132dp</dimen>
+    <dimen name="vehicle_battery_height">64dp</dimen>
+    <dimen name="vehicle_range_gap">12dp</dimen>
+    <dimen name="vehicle_range_min_width">260dp</dimen>
+    <dimen name="media_title">34sp</dimen>
+    <dimen name="media_artist">28sp</dimen>
+    <dimen name="media_time">24sp</dimen>
+    <dimen name="media_transport_size">96dp</dimen>
+    <dimen name="media_play_size">112dp</dimen>
+    <dimen name="media_control_padding">16dp</dimen>
+    <dimen name="media_volume_size">56dp</dimen>
+    <dimen name="album_art">128dp</dimen>
+    <dimen name="clock_text">104sp</dimen>
+    <dimen name="date_text">28sp</dimen>
+    <dimen name="wm_dashboard_min_height">256dp</dimen>
+    <dimen name="wm_media_padding">30dp</dimen>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_icon_size">88dp</dimen>
+    <dimen name="app_label_size">25sp</dimen>
+    <dimen name="app_tile_height">180dp</dimen>
+    <dimen name="tab_icon_size">40dp</dimen>
+    <dimen name="tab_label_size">23sp</dimen>
+    <dimen name="tab_bar_height">100dp</dimen>
+</resources>

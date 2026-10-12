@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string translatable="false" name="wm_tire_pressure">胎压</string>
+    <string translatable="false" name="wm_front_left">左前</string>
+    <string translatable="false" name="wm_front_right">右前</string>
+    <string translatable="false" name="wm_rear_left">左后</string>
+    <string translatable="false" name="wm_rear_right">右后</string>
+    <string translatable="false" name="wm_pressure_unknown">--</string>
+    <string translatable="false" name="wm_pressure_waiting">等待车辆数据</string>
+    <string translatable="false" name="wm_pressure_title_kpa">胎压 · kPa</string>
+    <string translatable="false" name="wm_pressure_factory_values">原厂读数</string>
+    <string translatable="false" name="wm_pressure_partial">部分轮胎暂无读数</string>
+    <string translatable="false" name="wm_pressure_warning">原厂胎压告警</string>
+    <string translatable="false" name="wm_pressure_unavailable">车辆数据暂不可用</string>
+    <style name="PressureWheel">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">2dp</item>
+    </style>
+    <style name="PressureLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">@dimen/pressure_label</item>
+    </style>
+    <style name="PressureValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/pressure_value</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:text">@string/wm_pressure_unknown</item>
+    </style>
+</resources>

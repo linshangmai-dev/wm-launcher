@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string translatable="false" name="uninstall_app">卸载此软件</string>
+    <string translatable="false" name="app_details">应用详情</string>
+    <string translatable="false" name="app_system_page_unavailable">无法打开系统应用页面，请在系统设置中管理此应用。</string>
+</resources>

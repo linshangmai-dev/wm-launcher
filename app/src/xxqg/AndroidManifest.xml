@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Exact spelling comes from the factory launcher's apps2.xml. -->
+        <activity-alias
+            android:name="com.wm.xxqg.base.activity.LauncherAcitity"
+            android:targetActivity="com.dashline.launcher.HomeActivity"
+            android:exported="true"
+            android:label="@string/app_name" />
+    </application>
+</manifest>

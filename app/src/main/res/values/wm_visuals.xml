@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string translatable="false" name="gradient_wm_ice">深海冰蓝</string>
+    <color name="media_surface">#D7E8F6</color>
+    <color name="filter_selected_fill">#241D80CC</color>
+</resources>

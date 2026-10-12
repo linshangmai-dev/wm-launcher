@@ -1,0 +1,36 @@
+{
+  "version": "0.1.0-wm18",
+  "versionCode": 1018,
+  "date": "2026-10-12",
+  "jvm": {
+    "legacy": {
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 189
+      }
+    },
+    "xxqg": {
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 189
+      }
+    }
+  },
+  "runtime": {
+    "api": 23,
+    "portrait": "1080x1920 mdpi",
+    "states": {
+      "idle": "WM visual fixture ready on emulator API 23; state=idle, rows=3, rowHeight=225, gridTop=1059, thirdRowBottom=1734, tabTop=1800, all nine icons and labels fit",
+      "playing": "WM visual fixture ready on emulator API 23; state=playing, rows=3, rowHeight=216, gridTop=1100, thirdRowBottom=1748, tabTop=1800, all nine icons and labels fit"
+    },
+    "production_apk_contains_visual_fixture": false
+  },
+  "checked_application_files": 209,
+  "apk_sha256": "aeee164068c5d2d59c3fe8d892391fb50d86bbe6eca8db7a60fd42b23b10c17a"
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.dashline.launcher.VehicleStatsLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:baselineAligned="false" android:paddingStart="8dp" android:paddingEnd="8dp">
+    <com.dashline.launcher.VehicleBatteryView android:id="@+id/batteryValue"
+        android:layout_width="@dimen/vehicle_battery_width"
+        android:layout_height="@dimen/vehicle_battery_height"
+        android:layout_marginEnd="@dimen/vehicle_range_gap"
+        android:contentDescription="@string/wm_vehicle_battery"
+        android:textColor="@color/text_primary" android:textStyle="bold"
+        android:textSize="@dimen/vehicle_stat_value" android:text="--%" />
+    <com.dashline.launcher.VehicleRangeView android:id="@+id/rangeValue"
+        style="@style/VehicleStatValue" android:layout_width="0dp"
+        android:layout_weight="1" android:gravity="start|center_vertical"
+        android:text="@string/wm_vehicle_range_unknown" />
+</com.dashline.launcher.VehicleStatsLayout>

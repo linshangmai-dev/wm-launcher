@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/pressureTitle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/wm_tire_pressure" android:textColor="@color/text_secondary"
+        android:textSize="@dimen/pressure_title" />
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:orientation="horizontal" android:baselineAligned="false">
+        <LinearLayout style="@style/PressureWheel">
+            <TextView style="@style/PressureLabel" android:text="@string/wm_front_left" />
+            <TextView android:id="@+id/frontLeft" style="@style/PressureValue" />
+        </LinearLayout>
+        <LinearLayout style="@style/PressureWheel">
+            <TextView style="@style/PressureLabel" android:text="@string/wm_front_right" />
+            <TextView android:id="@+id/frontRight" style="@style/PressureValue" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:orientation="horizontal" android:baselineAligned="false">
+        <LinearLayout style="@style/PressureWheel">
+            <TextView style="@style/PressureLabel" android:text="@string/wm_rear_left" />
+            <TextView android:id="@+id/rearLeft" style="@style/PressureValue" />
+        </LinearLayout>
+        <LinearLayout style="@style/PressureWheel">
+            <TextView style="@style/PressureLabel" android:text="@string/wm_rear_right" />
+            <TextView android:id="@+id/rearRight" style="@style/PressureValue" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView android:id="@+id/pressureStatus"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_marginTop="4dp" android:text="@string/wm_pressure_waiting"
+        android:textColor="@color/text_secondary" android:textSize="@dimen/pressure_status" />
+</LinearLayout>

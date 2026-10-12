@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- WM deep-navy / ice-blue design. -->
+<resources>
+    <color name="bg">#071522</color>
+    <color name="bar">#081C2B</color>
+    <color name="surface">#102A40</color>
+    <color name="surface_light">#193B56</color>
+    <color name="divider">#426785</color>
+    <color name="text_primary">#F0F6FF</color>
+    <color name="text_secondary">#B4CDE6</color>
+    <color name="icon_tint">#83C0F2</color>
+    <color name="accent">#49A7F5</color>
+    <color name="tile">#19344D</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="art_bg">#0A2439</color>
+    <color name="seek_track">#315675</color>
+    <color name="seek_fill">#49A7F5</color>
+</resources>
