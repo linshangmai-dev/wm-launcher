@@ -1173,6 +1173,7 @@ class HomeActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        WmHomeIntegration.ensureOnStart(this)
         // Setup isn't finished — bounce straight back to it.
         if (enforceSetup()) return
         if (!packageReceiverRegistered) {

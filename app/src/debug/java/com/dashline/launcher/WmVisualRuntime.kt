@@ -123,7 +123,7 @@ class WmVisualRuntime : Instrumentation() {
                 }
             }
             val bitmap = uiAutomation.takeScreenshot()
-            File(context.filesDir, "wm18-${args.getString("orientation", "portrait")}-${args.getString("state", "idle")}.png").outputStream().use {
+            File(context.filesDir, "wm19-${args.getString("orientation", "portrait")}-${args.getString("state", "idle")}.png").outputStream().use {
                 require(bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it))
             }
             finish(0, Bundle().apply { putString("stream", "WM visual fixture ready on emulator API 23; $spacingResult\n") })

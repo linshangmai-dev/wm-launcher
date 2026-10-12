@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string translatable="false" name="wm_weike_entry">首页威课堂跳转功能</string>
-    <string translatable="false" name="wm_weike_entry_description">启用后，原厂首页威课堂卡片显示“打开桌面”按钮。关闭仅移除该按钮。</string>
+    <string translatable="false" name="wm_weike_entry_description">自动保持开启，缺少“打开桌面”入口时补齐。点按可重新修复。</string>
     <string translatable="false" name="wm_default_home">默认桌面</string>
-    <string translatable="false" name="wm_default_home_description">启用后，将威马桌面设为系统默认桌面，按 Home 键直接进入。关闭恢复之前的桌面。</string>
+    <string translatable="false" name="wm_default_home_description">自动保持开启，启动时设为默认桌面，按 Home 键直接进入。点按可重新修复。</string>
     <string translatable="false" name="wm_home_checking">正在核对系统设置…</string>
-    <string translatable="false" name="wm_home_unverified">暂未读取到状态，点按可重新尝试。</string>
+    <string translatable="false" name="wm_home_unverified">系统设置尚未完成，点按可重试。</string>
+    <string translatable="false" name="wm_home_verified">系统设置已生效。</string>
+    <string translatable="false" name="wm_home_auto_saved">威课堂入口和默认桌面均已设置。</string>
     <string translatable="false" name="wm_weike_saved">威课堂设置已保存，下次打开原厂首页即可看到。</string>
     <string translatable="false" name="wm_default_home_saved">默认桌面设置已保存。</string>
     <string translatable="false" name="wm_home_failed">设置未完成</string>

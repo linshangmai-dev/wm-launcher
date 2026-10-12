@@ -17,6 +17,8 @@ internal class MediaKeyDispatcher(private val systemDispatch: (KeyEvent) -> Unit
                 try { sessionDispatch(up) } catch (_: Exception) { }
                 return true
             }
+            // A known source must never fall through to the system's last player.
+            return false
         }
         return try {
             systemDispatch(down)

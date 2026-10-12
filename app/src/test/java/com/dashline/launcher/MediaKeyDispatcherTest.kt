@@ -40,12 +40,12 @@ class MediaKeyDispatcherTest {
         assertEquals(4, session.size)
     }
 
-    @Test fun rejectedOrUnavailableSessionFallsBackAndFailedSystemReportsFailure() {
+    @Test fun rejectedOrUnavailableKnownSessionCannotWakeAnotherPlayer() {
         val received = mutableListOf<KeyEvent>()
         val dispatcher = MediaKeyDispatcher { received.add(it) }
-        assertTrue(dispatcher.dispatch(87) { false })
-        assertTrue(dispatcher.dispatch(88) { throw SecurityException("session unavailable") })
-        assertEquals(listOf(87, 87, 88, 88), received.map { it.keyCode })
+        assertFalse(dispatcher.dispatch(87) { false })
+        assertFalse(dispatcher.dispatch(88) { throw SecurityException("session unavailable") })
+        assertTrue(received.isEmpty())
         assertFalse(MediaKeyDispatcher { throw SecurityException("service unavailable") }.dispatch(85, null))
     }
 

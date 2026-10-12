@@ -18,8 +18,6 @@ class SettingsActivity : BaseActivity() {
     /** Guards the row's label while a manual check is in flight. */
     private var checkingUpdates = false
     private var homeActionBusy = false
-    private var bindingHomeSwitches = false
-    private var weikeVerified: Boolean? = null
 
     private companion object {
         const val REQ_DEFAULT_LAUNCHER = 10
@@ -33,13 +31,9 @@ class SettingsActivity : BaseActivity() {
         setContentView(binding.root)
         prefs = Prefs(this)
 
-        binding.rowWmWeike.setOnClickListener { applyHomeAction("card", !binding.wmWeikeSwitch.isChecked) }
-        binding.rowWmDefaultHome.setOnClickListener { applyHomeAction("home", !DefaultLauncher.isDefault(this)) }
-        binding.wmWeikeSwitch.setOnCheckedChangeListener { _, enabled ->
-            if (!bindingHomeSwitches) applyHomeAction("card", enabled)
-        }
-        binding.wmDefaultHomeSwitch.setOnCheckedChangeListener { _, enabled ->
-            if (!bindingHomeSwitches) applyHomeAction("home", enabled)
+        for (view in listOf(binding.rowWmWeike, binding.wmWeikeSwitch,
+            binding.rowWmDefaultHome, binding.wmDefaultHomeSwitch)) {
+            view.setOnClickListener { runHomeAction("ensure-on", true) }
         }
 
         binding.header.pageTitle.setText(R.string.settings_title)
@@ -117,7 +111,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         refresh()
-        runHomeAction("status", false)
+        runHomeAction("ensure-on", false)
     }
 
     override fun onResume() {
@@ -218,10 +212,9 @@ class SettingsActivity : BaseActivity() {
 
     private fun refresh() {
         val sp = getSharedPreferences("radio_launcher", MODE_PRIVATE)
-        bindingHomeSwitches = true
-        binding.wmWeikeSwitch.isChecked = weikeVerified ?: sp.getBoolean(WmHomeIntegration.CARD_ENABLED, false)
-        binding.wmDefaultHomeSwitch.isChecked = DefaultLauncher.isDefault(this)
-        bindingHomeSwitches = false
+        // These switches show the always-enabled policy, not a possibly pending system state.
+        binding.wmWeikeSwitch.isChecked = true
+        binding.wmDefaultHomeSwitch.isChecked = true
         for (view in listOf(binding.rowWmWeike, binding.wmWeikeSwitch,
             binding.rowWmDefaultHome, binding.wmDefaultHomeSwitch)) view.isEnabled = !homeActionBusy
         binding.wmOrientationValue.setText(when (sp.getString("wm_orientation", "auto")) {
@@ -299,13 +292,6 @@ class SettingsActivity : BaseActivity() {
     private fun label(pkg: String?): String =
         AppRepository.labelFor(this, pkg) ?: getString(R.string.not_set)
 
-    private fun applyHomeAction(kind: String, enabled: Boolean) {
-        if (homeActionBusy) { refresh(); return }
-        // Switch state follows verification, never the optimistic touch state.
-        refresh()
-        runHomeAction("$kind-${if (enabled) "on" else "off"}", true)
-    }
-
     private fun runHomeAction(action: String, showFeedback: Boolean) {
         if (homeActionBusy) return
         homeActionBusy = true
@@ -315,23 +301,25 @@ class SettingsActivity : BaseActivity() {
         WmHomeIntegration.run(this, action) { result ->
             if (isFinishing || isDestroyed) return@run
             homeActionBusy = false
-            result.onSuccess { value ->
-                if (value.has("cardEnabled")) weikeVerified = value.getBoolean("cardEnabled")
-            }
-            result.onFailure { if (action.startsWith("card")) weikeVerified = null }
-            binding.wmWeikeSummary.setText(if (weikeVerified == null) R.string.wm_home_unverified
-                else R.string.wm_weike_entry_description)
-            binding.wmDefaultHomeSummary.setText(R.string.wm_default_home_description)
+            val value = result.getOrNull()
+            fun description(enabled: Boolean, resource: Int) = getString(resource) + "\n" +
+                getString(if (enabled) R.string.wm_home_verified else R.string.wm_home_unverified)
+            binding.wmWeikeSummary.text = description(value?.optBoolean("cardEnabled") == true,
+                R.string.wm_weike_entry_description)
+            binding.wmDefaultHomeSummary.text = description(value?.optBoolean("homeEnabled") == true,
+                R.string.wm_default_home_description)
             refresh()
-            if (showFeedback) result.fold(onSuccess = {
-                android.widget.Toast.makeText(this,
-                    if (action.startsWith("card")) R.string.wm_weike_saved else R.string.wm_default_home_saved,
-                    android.widget.Toast.LENGTH_LONG).show()
-            }, onFailure = { failure ->
-                SettingsTextSizing.show(AlertDialog.Builder(this).setTitle(R.string.wm_home_failed)
-                    .setMessage(failure.message ?: getString(R.string.wm_home_unverified))
-                    .setPositiveButton(android.R.string.ok, null))
-            })
+            if (showFeedback) {
+                if (value?.optBoolean("complete") == true) {
+                    android.widget.Toast.makeText(this, R.string.wm_home_auto_saved,
+                        android.widget.Toast.LENGTH_LONG).show()
+                } else {
+                    SettingsTextSizing.show(AlertDialog.Builder(this).setTitle(R.string.wm_home_failed)
+                        .setMessage(result.exceptionOrNull()?.message ?: value?.optString("message")
+                            ?: getString(R.string.wm_home_unverified))
+                        .setPositiveButton(android.R.string.ok, null))
+                }
+            }
         }
     }
 

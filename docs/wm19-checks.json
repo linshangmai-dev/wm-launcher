@@ -1,0 +1,52 @@
+{
+  "version": "0.1.0-wm19",
+  "versionCode": 1019,
+  "date": "2026-10-12",
+  "jvm": {
+    "legacy": {
+      "tests": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 191
+      }
+    },
+    "xxqg": {
+      "tests": 59,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "lint": {
+        "Warning": 191
+      }
+    }
+  },
+  "runtime": {
+    "api": 23,
+    "portrait": "1080x1920 mdpi",
+    "states": {
+      "idle": "WM visual fixture ready on emulator API 23; state=idle, rows=3, rowHeight=225, gridTop=1059, thirdRowBottom=1734, tabTop=1800, all nine icons and labels fit",
+      "playing": "WM visual fixture ready on emulator API 23; state=playing, rows=3, rowHeight=216, gridTop=1100, thirdRowBottom=1748, tabTop=1800, all nine icons and labels fit"
+    },
+    "integration": {
+      "sdk": 23,
+      "signed_release_sha256": "b57892aff87279a952c5e545e62ed07b8b53dc2e57a7d8ea1f9685dc0d02cc5a",
+      "local_adb_used_by_ordinary_app_uid": true,
+      "fixture_not_real_oem": true,
+      "real_vehicle_post_install_validation": false,
+      "media": "four target-only callbacks; other player zero",
+      "tests": {
+        "startup_repairs_both": true,
+        "repeat_does_not_rewrite": true,
+        "both_switches_stay_enabled_after_click": true,
+        "home_key_routes_to_launcher": true,
+        "later_launch_repairs_removed_settings": true,
+        "landscape_settings_available": true
+      }
+    },
+    "production_apk_contains_debug_fixture": false
+  },
+  "checked_application_files": 213,
+  "apk_sha256": "b57892aff87279a952c5e545e62ed07b8b53dc2e57a7d8ea1f9685dc0d02cc5a"
+}

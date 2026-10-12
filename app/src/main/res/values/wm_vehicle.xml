@@ -43,5 +43,5 @@
     <string name="wm_actual_estimated_range_unknown" translatable="false">实际预估里程 -- km</string>
     <string name="wm_actual_estimated_range_inline" translatable="false">实际预估里程 %1$s</string>
     <string name="wm_trip_reset_unavailable" translatable="false">当前原厂接口只能读取小计，尚未找到仪表清零指令。请使用仪表原厂清零操作；数值更新后，桌面会自动同步。</string>
-    <string name="wm_media_control_failed" translatable="false">暂时无法控制播放器，请先打开音乐应用。</string>
+    <string name="wm_media_control_failed" translatable="false">当前播放器暂不支持此操作，请在播放应用中操作。</string>
 </resources>

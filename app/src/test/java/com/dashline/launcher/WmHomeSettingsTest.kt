@@ -52,4 +52,18 @@ class WmHomeSettingsTest {
     fun firstTwoOptionsFitPortrait() = check(1080, 1920)
     @Test @Config(qualifiers = "w800dp-h480dp-land-mdpi")
     fun firstTwoOptionsFitLandscapeAndRemainScrollable() = check(800, 480)
+    @Test fun firstTwoSwitchesCannotBeTurnedOffByTouchOrOldSavedState() {
+        val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.Theme_RadioLauncher)
+        val page = ActivitySettingsBinding.inflate(LayoutInflater.from(context))
+        for (toggle in listOf(page.wmWeikeSwitch, page.wmDefaultHomeSwitch)) {
+            assertTrue(toggle.isChecked)
+            var repairs = 0
+            toggle.setOnClickListener { repairs++ }
+            toggle.performClick()
+            toggle.isChecked = false
+            toggle.toggle()
+            assertTrue(toggle.isChecked)
+            assertEquals(1, repairs)
+        }
+    }
 }

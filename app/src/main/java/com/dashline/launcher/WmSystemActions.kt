@@ -26,7 +26,7 @@ object WmSystemActions {
         try {
             check(Build.VERSION.SDK_INT == 23) { "此功能仅适配威马 Android 6.0.1 系统" }
             check(Os.getuid() == 0) { "当前调试服务没有系统修改权限" }
-            require(args.size == 2 && args[0] in setOf("status", "card-on", "card-off", "home-on", "home-off"))
+            require(args.size == 2 && args[0] in setOf("status", "ensure-on", "card-on", "card-off", "home-on", "home-off"))
             val pkg = args[1]
             require(pkg in setOf("com.wmhome.launcher", "com.wm.xxqg"))
             if (Looper.myLooper() == null) Looper.prepareMainLooper()
@@ -51,67 +51,70 @@ object WmSystemActions {
                 Os.chown(backupDir.path, ownInfo.uid, ownInfo.uid)
                 Os.chmod(backupDir.path, 448) // 0700
             }
+            fun changeCard(enable: Boolean): JSONObject {
+                val original = cardFile(pm)
+                val initial = WmCardConfig.update(original.readBytes(), pkg, enable)
+                if (!initial.bytes.contentEquals(original.readBytes())) {
+                    // Stop its cached writer before reading the final bytes. Settings stays on screen.
+                    val stop = ProcessBuilder("/system/bin/am", "force-stop", OEM).redirectErrorStream(true).start()
+                    val stopOutput = stop.inputStream.bufferedReader().readText()
+                    check(stop.waitFor() == 0 && !stopOutput.contains("Exception")) { "无法暂停原厂桌面" }
+                    val before = original.readBytes()
+                    val update = WmCardConfig.update(before, pkg, enable)
+                    val metadata = Os.stat(original.path)
+                    prepareBackup()
+                    val backup = File(backupDir, "message-card-${System.currentTimeMillis()}.pb")
+                    atomicWrite(backup, before, ownInfo.uid, ownInfo.uid, 384)
+                    try {
+                        atomicWrite(original, update.bytes, metadata.st_uid, metadata.st_gid, metadata.st_mode and 511)
+                        val verified = readCard(pm, pkg)
+                        check(verified.enabled == enable && original.readBytes().contentEquals(update.bytes))
+                    } catch (failure: Throwable) {
+                        atomicWrite(original, before, metadata.st_uid, metadata.st_gid, metadata.st_mode and 511)
+                        throw failure
+                    }
+                }
+                val verified = readCard(pm, pkg)
+                check(verified.enabled == enable) { "原厂卡片未保存修改" }
+                return JSONObject().put("cardEnabled", verified.enabled).put("cards", verified.cards)
+                    .put("homeEnabled", isHome(pm, target))
+            }
+            fun changeHome(enable: Boolean): JSONObject {
+                val candidates = ArrayList<ResolveInfo>()
+                val previous = pm.javaClass.getMethod("getHomeActivities", List::class.java)
+                    .invoke(pm, candidates) as? ComponentName
+                val restoreFile = File(backupDir, "home-before.json")
+                val selected = if (enable) target else {
+                    val saved = if (restoreFile.isFile) ComponentName.unflattenFromString(
+                        JSONObject(restoreFile.readText()).optString("component")) else null
+                    (saved?.takeIf { it != target && hasCandidate(candidates, it) }
+                        ?: ComponentName(OEM, OEM_HOME)).also {
+                        check(hasCandidate(candidates, it)) { "原默认桌面不可用，已保留威马桌面" }
+                    }
+                }
+                check(hasCandidate(candidates, selected)) { "所选程序没有系统桌面入口" }
+                if (enable && previous != target) {
+                    prepareBackup()
+                    atomicWrite(restoreFile, JSONObject().put("component", previous?.flattenToString() ?: "")
+                        .toString().toByteArray(), ownInfo.uid, ownInfo.uid, 384)
+                }
+                try {
+                    if (previous != selected) selectHome(pm, candidates, selected)
+                    check(isHome(pm, selected)) { "系统没有采用所选默认桌面" }
+                } catch (failure: Throwable) {
+                    if (previous != null && hasCandidate(candidates, previous)) selectHome(pm, candidates, previous)
+                    throw failure
+                }
+                return JSONObject().put("homeEnabled", isHome(pm, target))
+            }
             val result = when (args[0]) {
                 "status" -> JSONObject().put("cardEnabled", readCard(pm, pkg).enabled)
                     .put("homeEnabled", isHome(pm, target))
-                "card-on", "card-off" -> {
-                    val enable = args[0] == "card-on"
-                    val original = cardFile(pm)
-                    val initial = WmCardConfig.update(original.readBytes(), pkg, enable)
-                    if (!initial.bytes.contentEquals(original.readBytes())) {
-                        // Stop its cached writer before reading the final bytes. Settings stays on screen.
-                        val stop = ProcessBuilder("/system/bin/am", "force-stop", OEM).redirectErrorStream(true).start()
-                        val stopOutput = stop.inputStream.bufferedReader().readText()
-                        check(stop.waitFor() == 0 && !stopOutput.contains("Exception")) { "无法暂停原厂桌面" }
-                        val before = original.readBytes()
-                        val update = WmCardConfig.update(before, pkg, enable)
-                        val metadata = Os.stat(original.path)
-                        prepareBackup()
-                        val backup = File(backupDir, "message-card-${System.currentTimeMillis()}.pb")
-                        atomicWrite(backup, before, ownInfo.uid, ownInfo.uid, 384)
-                        try {
-                            atomicWrite(original, update.bytes, metadata.st_uid, metadata.st_gid, metadata.st_mode and 511)
-                            val verified = readCard(pm, pkg)
-                            check(verified.enabled == enable && original.readBytes().contentEquals(update.bytes))
-                        } catch (failure: Throwable) {
-                            atomicWrite(original, before, metadata.st_uid, metadata.st_gid, metadata.st_mode and 511)
-                            throw failure
-                        }
-                    }
-                    val verified = readCard(pm, pkg)
-                    check(verified.enabled == enable) { "原厂卡片未保存修改" }
-                    JSONObject().put("cardEnabled", verified.enabled).put("cards", verified.cards)
-                        .put("homeEnabled", isHome(pm, target))
-                }
-                else -> {
-                    val candidates = ArrayList<ResolveInfo>()
-                    val previous = pm.javaClass.getMethod("getHomeActivities", List::class.java)
-                        .invoke(pm, candidates) as? ComponentName
-                    val restoreFile = File(backupDir, "home-before.json")
-                    val enable = args[0] == "home-on"
-                    val selected = if (enable) target else {
-                        val saved = if (restoreFile.isFile) ComponentName.unflattenFromString(
-                            JSONObject(restoreFile.readText()).optString("component")) else null
-                        (saved?.takeIf { it != target && hasCandidate(candidates, it) }
-                            ?: ComponentName(OEM, OEM_HOME)).also {
-                            check(hasCandidate(candidates, it)) { "原默认桌面不可用，已保留威马桌面" }
-                        }
-                    }
-                    check(hasCandidate(candidates, selected)) { "所选程序没有系统桌面入口" }
-                    if (enable && previous != target) {
-                        prepareBackup()
-                        atomicWrite(restoreFile, JSONObject().put("component", previous?.flattenToString() ?: "")
-                            .toString().toByteArray(), ownInfo.uid, ownInfo.uid, 384)
-                    }
-                    try {
-                        selectHome(pm, candidates, selected)
-                        check(isHome(pm, selected)) { "系统没有采用所选默认桌面" }
-                    } catch (failure: Throwable) {
-                        if (previous != null && hasCandidate(candidates, previous)) selectHome(pm, candidates, previous)
-                        throw failure
-                    }
-                    JSONObject().put("homeEnabled", isHome(pm, target))
-                }
+                "ensure-on" -> WmHomeRepair.ensure(
+                    home = { isHome(pm, target) }, enableHome = { changeHome(true); Unit },
+                    card = { readCard(pm, pkg).enabled }, enableCard = { changeCard(true); Unit })
+                "card-on", "card-off" -> changeCard(args[0] == "card-on")
+                else -> changeHome(args[0] == "home-on")
             }
             result.put("ok", true)
             println(PREFIX + result)

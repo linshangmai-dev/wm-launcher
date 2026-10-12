@@ -5,12 +5,36 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import org.json.JSONObject
 
-/** Settings-driven, finite operations. Probe only reads; a mutation is never retried automatically. */
+/** Finite startup repairs; no resident root service or background polling. */
 internal object WmHomeIntegration {
     const val CARD_ENABLED = "wm_weike_entry_enabled"
     private val lock = Any()
+    private val automaticLock = Any()
+    private var automaticBusy = false
+    private var lastAutomaticFailed = false
+    private var lastAutomaticCheck = -60_000L
+
+    fun ensureOnStart(context: Context) {
+        if (Build.VERSION.SDK_INT != 23) return
+        // This OEM integration is inapplicable on ordinary Android devices/emulators.
+        try { context.packageManager.getApplicationInfo("com.wm.launcher", 0) }
+        catch (_: android.content.pm.PackageManager.NameNotFoundException) { return }
+        val now = SystemClock.elapsedRealtime()
+        synchronized(automaticLock) {
+            if (automaticBusy || (lastAutomaticFailed && now - lastAutomaticCheck < 60_000L)) return
+            automaticBusy = true
+            lastAutomaticCheck = now
+        }
+        run(context, "ensure-on") { result ->
+            synchronized(automaticLock) {
+                automaticBusy = false
+                lastAutomaticFailed = result.getOrNull()?.optBoolean("complete") != true
+            }
+        }
+    }
     fun run(context: Context, action: String, callback: (Result<JSONObject>) -> Unit) {
         val app = context.applicationContext
         Thread({
@@ -24,7 +48,7 @@ internal object WmHomeIntegration {
     }
     private fun perform(context: Context, action: String): JSONObject {
         check(Build.VERSION.SDK_INT == 23) { "此功能仅适配威马 Android 6.0.1 系统" }
-        require(action in setOf("status", "card-on", "card-off", "home-on", "home-off"))
+        require(action in setOf("status", "ensure-on", "card-on", "card-off", "home-on", "home-off"))
         // Create the parent under our normal UID, before a root helper creates a backup child.
         check(context.filesDir.isDirectory) { "无法打开桌面的备份目录" }
         val command = "CLASSPATH=${quote(context.applicationInfo.sourceDir)} /system/bin/app_process /system/bin " +

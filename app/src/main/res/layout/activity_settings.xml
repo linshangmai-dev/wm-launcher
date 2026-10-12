@@ -39,9 +39,9 @@
                             android:textSize="20sp" android:textColor="@color/text_secondary"
                             android:layout_marginTop="10dp" android:text="@string/wm_weike_entry_description" />
                     </LinearLayout>
-                    <androidx.appcompat.widget.SwitchCompat android:id="@+id/wmWeikeSwitch"
+                    <com.dashline.launcher.WmEnabledSwitch android:id="@+id/wmWeikeSwitch"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:minHeight="84dp" android:minWidth="120dp" android:layout_marginStart="20dp"
+                        android:checked="true" android:minHeight="84dp" android:minWidth="120dp" android:layout_marginStart="20dp"
                         android:thumb="@drawable/wm_home_switch_thumb" app:track="@drawable/wm_home_switch_track"
                         app:thumbTint="@null" app:trackTint="@null" app:switchMinWidth="120dp"
                         android:contentDescription="@string/wm_weike_entry" />
@@ -60,9 +60,9 @@
                             android:textSize="20sp" android:textColor="@color/text_secondary"
                             android:layout_marginTop="10dp" android:text="@string/wm_default_home_description" />
                     </LinearLayout>
-                    <androidx.appcompat.widget.SwitchCompat android:id="@+id/wmDefaultHomeSwitch"
+                    <com.dashline.launcher.WmEnabledSwitch android:id="@+id/wmDefaultHomeSwitch"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:minHeight="84dp" android:minWidth="120dp" android:layout_marginStart="20dp"
+                        android:checked="true" android:minHeight="84dp" android:minWidth="120dp" android:layout_marginStart="20dp"
                         android:thumb="@drawable/wm_home_switch_thumb" app:track="@drawable/wm_home_switch_track"
                         app:thumbTint="@null" app:trackTint="@null" app:switchMinWidth="120dp"
                         android:contentDescription="@string/wm_default_home" />

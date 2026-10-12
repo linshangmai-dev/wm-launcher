@@ -11,6 +11,7 @@ import android.media.MediaMetadata
 import android.media.AudioManager
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
+import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Build
 import android.view.KeyEvent
@@ -43,6 +44,7 @@ class MediaMonitor(
         context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
 
     private var controller: MediaController? = null
+    private var preferredToken: MediaSession.Token? = null
     private var started = false
     private var sessions: List<MediaController> = emptyList()
     private val keyDispatcher = MediaKeyDispatcher {
@@ -97,10 +99,30 @@ class MediaMonitor(
     fun previous() = command(KeyEvent.KEYCODE_MEDIA_PREVIOUS)
 
     private fun command(keyCode: Int): Boolean {
-        val c = controller
-        return keyDispatcher.dispatch(keyCode, c?.let { active ->
-            { event: KeyEvent -> active.dispatchMediaButtonEvent(event) }
-        })
+        val c = controller ?: return keyDispatcher.dispatch(keyCode, null)
+        val state = c.playbackState
+        val playing = state?.state in setOf(PlaybackState.STATE_PLAYING,
+            PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING)
+        val action = when (keyCode) {
+            KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> if (playing) PlaybackState.ACTION_PAUSE else PlaybackState.ACTION_PLAY
+            KeyEvent.KEYCODE_MEDIA_NEXT -> PlaybackState.ACTION_SKIP_TO_NEXT
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> PlaybackState.ACTION_SKIP_TO_PREVIOUS
+            else -> 0L
+        }
+        if (action != 0L && (state?.actions ?: 0L) and action != 0L) {
+            // CarPlay advertises transport controls without accepting Android 6 media keys.
+            // Use the exact session shown on the card, including after pausing it.
+            return try {
+                when (action) {
+                    PlaybackState.ACTION_PAUSE -> c.transportControls.pause()
+                    PlaybackState.ACTION_PLAY -> c.transportControls.play()
+                    PlaybackState.ACTION_SKIP_TO_NEXT -> c.transportControls.skipToNext()
+                    PlaybackState.ACTION_SKIP_TO_PREVIOUS -> c.transportControls.skipToPrevious()
+                }
+                true
+            } catch (_: Exception) { false }
+        }
+        return keyDispatcher.dispatch(keyCode) { event -> c.dispatchMediaButtonEvent(event) }
     }
 
     fun seekTo(ms: Long) {
@@ -124,11 +146,13 @@ class MediaMonitor(
 
     // ---- internals ---------------------------------------------------------
 
-    /** Prefer a session that is actively playing; otherwise the first available. */
+    /** Keep the displayed source when paused, so resume cannot wake another player. */
     private fun pickActive(controllers: List<MediaController>?): MediaController? {
         if (controllers.isNullOrEmpty()) return null
         return controllers.firstOrNull {
             it.playbackState?.state == PlaybackState.STATE_PLAYING
+        } ?: controllers.firstOrNull {
+            it.sessionToken == (controller?.sessionToken ?: preferredToken)
         } ?: controllers.firstOrNull {
             it.playbackState?.state == PlaybackState.STATE_PAUSED && it.metadata != null
         } ?: controllers.firstOrNull { it.metadata != null } ?: controllers.first()
@@ -141,6 +165,7 @@ class MediaMonitor(
         }
         controller?.unregisterCallback(controllerCallback)
         controller = newController
+        preferredToken = newController?.sessionToken
         controller?.registerCallback(controllerCallback)
         emit()
     }
