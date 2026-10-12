@@ -64,7 +64,7 @@ Windows 使用 `gradlew.bat`。调试 APK 位于 `app/build/outputs/apk/legacy/d
 
 wm21 两种分支共 **136 项 API 23 单元/布局检查通过**，正式 APK 的 v1/v2 签名有效。安卓 6 模拟器验证普通键盘、屏幕按钮和原厂 Binder 的 release-only 88/87 回调均进入当前远程形式媒体会话；连续按键保留，原厂播放器不重复转发，停止后撤销监听并丢弃延迟回调，另一个播放器收到零次操作。
 
-实车协作捕捉已确认物理左/右键通过原厂 InputService 转换为 88/87 并发送 ACTION_UP；模拟器会话为自编替身，新版真实 CarPlay 切歌效果需另行确认。检查记录见 [wm21-checks.json](docs/wm21-checks.json)。原始车辆日志和原厂二进制没有公开。
+实车协作捕捉已确认物理左/右键通过原厂 InputService 转换为 88/87 并发送 ACTION_UP；模拟器会话为自编替身。新版安装后，用户实车按实体左右键，已确认恢复响应、效果可以；确认范围为首页实体切歌键。检查记录见 [wm21-checks.json](docs/wm21-checks.json)。原始车辆日志和原厂二进制没有公开。
 
 自动入口、默认 HOME、常开开关和三排布局的既有检查见 [wm19-checks.json](docs/wm19-checks.json)。测试入口仅在 debug 中存在，不进入 Release APK。
 

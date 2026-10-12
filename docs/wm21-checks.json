@@ -34,5 +34,11 @@
     "presses_per_key": 3
   },
   "checked_application_files": 217,
-  "apk_sha256": "525dcb9e97f14f3cd9206f61c1ec287bd57bcd18489fd1f15e143581fbcb1884"
+  "apk_sha256": "525dcb9e97f14f3cd9206f61c1ec287bd57bcd18489fd1f15e143581fbcb1884",
+  "vehicle_confirmation": {
+    "method": "user-tested physical left/right keys with CarPlay music on Home",
+    "result": "keys respond; effect accepted by user",
+    "scope": "physical track keys only",
+    "date": "2026-10-13"
+  }
 }
