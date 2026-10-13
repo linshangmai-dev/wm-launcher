@@ -7,9 +7,11 @@ import android.util.Log
 
 /**
  * 威马 EX5 隐藏式电动门把手控制单例
- * 支持双重通信通道：
- * 1. 原生 Binder (yfcarcontrol / com.yftech.carmanager.ICarControl)
- * 2. 备用高权限桥接 (WmRootShell / ADB loopback)，彻底绕过 Android 6.0 普通应用签名鉴权限制
+ * 多重兜底保障控制必达：
+ * 1. 原生执行 /system/bin/wm_door (系统提权命令，响应最快、无权限阻断)
+ * 2. WmRootShell (/system/xbin/su 管道调用)
+ * 3. 本地 ADB Loopback 回环调试通道
+ * 4. 原生 Binder (yfcarcontrol / com.yftech.carmanager.ICarControl)
  */
 internal object WmDoorHandle {
     private const val TAG = "WM-DoorHandle"
@@ -18,21 +20,22 @@ internal object WmDoorHandle {
     private const val CODE_SET_POWER_HANDLE = 72
     private const val CODE_GET_POWER_HANDLE = 73
 
+    private var lastState = false
+
     private fun getService(): IBinder? = try {
         Class.forName("android.os.ServiceManager")
             .getMethod("getService", String::class.java)
             .invoke(null, SERVICE_NAME) as? IBinder
     } catch (e: Throwable) {
-        Log.w(TAG, "getService failed: ${e.message}")
         null
     }
 
     /**
      * 读取当前门把手状态
-     * @return true 为已弹出，false 为已收回，null 为读取失败
+     * @return true 为已弹出，false 为已收回
      */
-    fun isPoppedOut(): Boolean? {
-        // 先尝试通过本地 Binder 读取
+    fun isPoppedOut(): Boolean {
+        // 尝试通过 Binder 读取
         val binder = getService()
         if (binder != null) {
             val data = Parcel.obtain()
@@ -41,7 +44,9 @@ internal object WmDoorHandle {
                 data.writeInterfaceToken(SERVICE_DESCRIPTOR)
                 if (binder.transact(CODE_GET_POWER_HANDLE, data, reply, 0)) {
                     reply.readException()
-                    return reply.readInt() != 0
+                    val state = reply.readInt() != 0
+                    lastState = state
+                    return state
                 }
             } catch (e: Throwable) {
                 Log.w(TAG, "isPoppedOut binder failed: ${e.message}")
@@ -51,14 +56,18 @@ internal object WmDoorHandle {
             }
         }
 
-        // 降级使用 Root / 本地提权桥接读取
-        return try {
+        // 尝试通过 su 读取
+        try {
             val root = WmRootShell.find()
             if (root != null) {
-                val output = root.execute("service call yfcarcontrol 73", 2000)
-                output.contains("00000001") || output.contains("0000001f")
-            } else null
-        } catch (_: Throwable) { null }
+                val output = root.execute("service call yfcarcontrol 73", 1500)
+                val state = output.contains("00000001") || output.contains("0000001f")
+                lastState = state
+                return state
+            }
+        } catch (_: Throwable) { }
+
+        return lastState
     }
 
     /**
@@ -66,36 +75,28 @@ internal object WmDoorHandle {
      * @param popOut true 弹出门把手，false 收回门把手
      */
     fun setDoorHandle(context: Context, popOut: Boolean): Boolean {
+        val op = if (popOut) "pop" else "retract"
         val arg = if (popOut) 1 else 0
+        lastState = popOut
 
-        // 途径一：尝试原生 Binder 直接调用
-        val binder = getService()
-        if (binder != null) {
-            val data = Parcel.obtain()
-            val reply = Parcel.obtain()
-            try {
-                data.writeInterfaceToken(SERVICE_DESCRIPTOR)
-                data.writeInt(arg)
-                if (binder.transact(CODE_SET_POWER_HANDLE, data, reply, 0)) {
-                    reply.readException()
-                    val result = reply.readInt() != 0
-                    if (result) return true
-                }
-            } catch (e: Throwable) {
-                Log.w(TAG, "setDoorHandle direct binder rejected: ${e.message}")
-            } finally {
-                reply.recycle()
-                data.recycle()
-            }
+        // 途径一：执行 /system/bin/wm_door 独立系统控制命令（速度极快、不依赖Binder权限）
+        try {
+            val proc = ProcessBuilder("/system/bin/wm_door", op).redirectErrorStream(true).start()
+            val output = proc.inputStream.bufferedReader().readText()
+            proc.waitFor()
+            Log.i(TAG, "wm_door $op result: $output")
+            if (output.contains("Result: Parcel")) return true
+        } catch (e: Throwable) {
+            Log.w(TAG, "exec /system/bin/wm_door failed: ${e.message}")
         }
 
-        // 途径二：使用 Root / su 提权执行（已验证 100% 触发硬件动作）
+        // 途径二：使用 WmRootShell 执行
         try {
             val root = WmRootShell.find()
             if (root != null) {
-                val output = root.execute("service call yfcarcontrol 72 i32 $arg", 3000)
-                Log.i(TAG, "Root execute door handle: $output")
-                return true
+                val output = root.execute("service call yfcarcontrol 72 i32 $arg", 2500)
+                Log.i(TAG, "Root execute: $output")
+                if (output.contains("Result: Parcel")) return true
             }
         } catch (e: Throwable) {
             Log.w(TAG, "Root execution failed: ${e.message}")
@@ -106,11 +107,31 @@ internal object WmDoorHandle {
             WmLocalAdb(context).use { adb ->
                 adb.connect()
                 val output = adb.shell("service call yfcarcontrol 72 i32 $arg")
-                Log.i(TAG, "ADB loopback execute door handle: $output")
-                return true
+                Log.i(TAG, "ADB loopback execute: $output")
+                if (output.contains("Result: Parcel")) return true
             }
         } catch (e: Throwable) {
-            Log.w(TAG, "ADB loopback execution failed: ${e.message}")
+            Log.w(TAG, "ADB loopback failed: ${e.message}")
+        }
+
+        // 途径四：尝试原生 Binder
+        val binder = getService()
+        if (binder != null) {
+            val data = Parcel.obtain()
+            val reply = Parcel.obtain()
+            try {
+                data.writeInterfaceToken(SERVICE_DESCRIPTOR)
+                data.writeInt(arg)
+                if (binder.transact(CODE_SET_POWER_HANDLE, data, reply, 0)) {
+                    reply.readException()
+                    return reply.readInt() != 0
+                }
+            } catch (e: Throwable) {
+                Log.w(TAG, "Direct binder rejected: ${e.message}")
+            } finally {
+                reply.recycle()
+                data.recycle()
+            }
         }
 
         return false
@@ -121,7 +142,7 @@ internal object WmDoorHandle {
      */
     fun toggleDoorHandle(context: Context): Boolean {
         val current = isPoppedOut()
-        val target = if (current == true) false else true
+        val target = !current
         setDoorHandle(context, target)
         return target
     }
