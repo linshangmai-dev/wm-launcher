@@ -144,6 +144,7 @@ class HomeActivity : BaseActivity() {
         // grid's own relative bounds, so observe that movement as well.
         binding.portraitDrawer.addOnLayoutChangeListener(repage)
         applyAccent()
+        WmDoorHandle.bind(this)
     }
 
     /**
