@@ -217,9 +217,13 @@ class HomeActivity : BaseActivity() {
             startActivity(Intent(this, FactoryAppsActivity::class.java))
         }
         binding.shortcutDoorHandle.setOnClickListener {
-            val isPopped = WmDoorHandle.toggleDoorHandle()
-            val message = if (isPopped) getString(R.string.wm_door_handle_popped) else getString(R.string.wm_door_handle_retracted)
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Thread {
+                val isPopped = WmDoorHandle.toggleDoorHandle(this)
+                val message = if (isPopped) getString(R.string.wm_door_handle_popped) else getString(R.string.wm_door_handle_retracted)
+                runOnUiThread {
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }
+            }.start()
         }
         binding.tirePressure.root.setOnClickListener { binding.shortcutAndroidAuto.performClick() }
         binding.homeButton.setOnClickListener { updateClock() }
