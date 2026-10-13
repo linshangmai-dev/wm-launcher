@@ -216,6 +216,11 @@ class HomeActivity : BaseActivity() {
         binding.shortcutCarPlay.setOnClickListener {
             startActivity(Intent(this, FactoryAppsActivity::class.java))
         }
+        binding.shortcutDoorHandle.setOnClickListener {
+            val isPopped = WmDoorHandle.toggleDoorHandle()
+            val message = if (isPopped) getString(R.string.wm_door_handle_popped) else getString(R.string.wm_door_handle_retracted)
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
         binding.tirePressure.root.setOnClickListener { binding.shortcutAndroidAuto.performClick() }
         binding.homeButton.setOnClickListener { updateClock() }
 

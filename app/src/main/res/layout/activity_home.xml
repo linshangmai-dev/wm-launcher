@@ -223,31 +223,54 @@
                         app:srcCompat="@drawable/wm_ic_chevron" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:id="@+id/shortcutCarPlay"
-                    style="@style/ProjectionTile">
+                    <LinearLayout
+                        android:id="@+id/shortcutCarPlay"
+                        style="@style/ProjectionTile">
 
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="@dimen/shortcut_icon"
-                        android:layout_height="@dimen/shortcut_icon"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"
-                        app:srcCompat="@drawable/wm_ic_factory" />
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="@dimen/shortcut_icon"
+                            android:layout_height="@dimen/shortcut_icon"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@null"
+                            app:srcCompat="@drawable/wm_ic_factory" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:text="@string/wm_factory_apps"
-                        android:textColor="@color/text_primary"
-                        android:textSize="@dimen/shortcut_text" />
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="20dp" android:layout_height="20dp"
-                        android:layout_marginStart="12dp" android:contentDescription="@null"
-                        app:srcCompat="@drawable/wm_ic_chevron" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:text="@string/wm_factory_apps"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/shortcut_text" />
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="20dp" android:layout_height="20dp"
+                            android:layout_marginStart="12dp" android:contentDescription="@null"
+                            app:srcCompat="@drawable/wm_ic_chevron" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/shortcutDoorHandle"
+                        style="@style/ProjectionTile">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/doorHandleIcon"
+                            android:layout_width="@dimen/shortcut_icon"
+                            android:layout_height="@dimen/shortcut_icon"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@null"
+                            app:srcCompat="@drawable/wm_ic_door_handle" />
+
+                        <TextView
+                            android:id="@+id/doorHandleLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:text="@string/wm_door_handle"
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/shortcut_text" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
         </LinearLayout>
 
         <!-- Right column: media widget + phone card -->

@@ -53,6 +53,7 @@ class DashboardLayoutTest {
         assertTrue(home.topBar.height >= 76)
         assertTrue(home.shortcutAndroidAuto.height >= 80)
         assertTrue(home.shortcutCarPlay.height >= 80)
+        assertTrue(home.shortcutDoorHandle.height >= 80)
         assertTrue(home.tirePressure.root.right < (home.clockSlot.parent as View).left)
         assertTrue(home.bigClock.gravity and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT)
         assertTrue(yInRoot(home.tirePressure.frontLeft) < yInRoot(home.tirePressure.rearLeft))
